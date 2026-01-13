@@ -3,52 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <title>Policía y Ladrón</title>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
 </head>
 <body>
-  <h1>Juego Policía y Ladrón</h1>
   <button id="btnPolicia">Soy Policía</button>
   <button id="btnLadron">Soy Ladrón</button>
-
   <div id="vista"></div>
   <video id="camara" autoplay playsinline style="display:none;"></video>
+  <audio id="alertSound" src="alerta.mp3" preload="auto"></audio>
 
 <script>
-  // Configura tu proyecto Firebase (pon tus claves aquí)
-  const firebaseConfig = {
-    apiKey: "TU_API_KEY",
-    authDomain: "TU_DOMINIO.firebaseapp.com",
-    databaseURL: "https://TU_DOMINIO.firebaseio.com",
-    projectId: "TU_PROJECT_ID",
-    storageBucket: "TU_BUCKET.appspot.com",
-    messagingSenderId: "TU_SENDER_ID",
-    appId: "TU_APP_ID"
-  };
-  const app = firebase.initializeApp(firebaseConfig);
-  const db = firebase.database();
-
+  const ws = new WebSocket("ws://TU_SERVIDOR:8080");
   const vista = document.getElementById('vista');
   const camara = document.getElementById('camara');
+  const alertSound = document.getElementById('alertSound');
+
+  let role = null;
 
   document.getElementById('btnPolicia').onclick = () => {
+    role = "policia";
     vista.textContent = "Se activará la alarma cuando el ladrón escape...";
-    db.ref("escape").on("value", snap => {
-      if (snap.val() === true) {
-        vista.textContent = "¡El ladrón está escapando!";
-      }
-    });
   };
 
   document.getElementById('btnLadron').onclick = () => {
+    role = "ladron";
     vista.innerHTML = "<button id='escapar'>Escapar</button>";
     document.getElementById('escapar').onclick = () => {
-      db.ref("escape").set(true);
+      ws.send(JSON.stringify({ type: "ESCAPE" }));
       vista.textContent = "¡Escapaste! Activando cámara en 2 segundos...";
       setTimeout(async () => {
         camara.style.display = "block";
         try {
-          const stream = await navigator.mediaDevices.getUserMedia({video:true});
+          const stream = await navigator.mediaDevices.getUserMedia({ video: true });
           camara.srcObject = stream;
         } catch(e) {
           vista.textContent = "No se pudo activar la cámara.";
@@ -56,7 +41,14 @@
       }, 2000);
     };
   };
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    if (msg.type === "ESCAPE" && role === "policia") {
+      vista.textContent = "¡El ladrón está escapando!";
+      alertSound.play().catch(()=>{});
+    }
+  };
 </script>
 </body>
 </html>
-
