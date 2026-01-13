@@ -1,327 +1,62 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Policía y Ladrón</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    :root {
-      --bg: #0d0f14;
-      --fg: #e7eaf0;
-      --accent: #4cc9f0;
-      --danger: #ff3b3b;
-      --ok: #45f59b;
-      --muted: #9aa3ad;
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      min-height: 100vh;
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
-      background: radial-gradient(1200px 500px at 10% 10%, #12151b, var(--bg));
-      color: var(--fg);
-      display: grid;
-      place-items: center;
-      padding: 2rem;
-    }
-    .app {
-      width: 100%;
-      max-width: 900px;
-      background: #12151b;
-      border: 1px solid #1c2330;
-      border-radius: 16px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-      overflow: hidden;
-    }
-    header {
-      padding: 1rem 1.25rem;
-      border-bottom: 1px solid #1c2330;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-    }
-    header h1 {
-      margin: 0;
-      font-size: 1.25rem;
-      letter-spacing: 0.2px;
-    }
-    header .status {
-      font-size: 0.9rem;
-      color: var(--muted);
-    }
-    .content {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 0;
-    }
-    .panel {
-      padding: 1.5rem;
-      min-height: 360px;
-      border-right: 1px solid #1c2330;
-    }
-    .panel:last-child { border-right: none; }
-    .role-select {
-      display: grid;
-      gap: 1rem;
-    }
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      padding: 0.85rem 1.2rem;
-      border-radius: 10px;
-      border: 1px solid #263042;
-      background: #151a24;
-      color: var(--fg);
-      cursor: pointer;
-      transition: transform 120ms ease, box-shadow 120ms ease, background 160ms ease;
-      text-decoration: none;
-      font-weight: 600;
-    }
-    .btn:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 18px rgba(0,0,0,0.25);
-      background: #171e29;
-    }
-    .btn-accent { border-color: #335a7a; color: #cbe9ff; }
-    .btn-danger { border-color: #6b1a1a; color: #ffd6d6; }
-    .badge {
-      display: inline-block;
-      padding: 0.25rem 0.5rem;
-      border-radius: 6px;
-      font-size: 0.8rem;
-      background: #162034;
-      border: 1px solid #22314f;
-      color: #cde5ff;
-    }
-    .message {
-      margin-top: 0.75rem;
-      font-size: 1rem;
-      color: var(--muted);
-    }
-    .message strong {
-      color: var(--fg);
-    }
-    .alert {
-      margin-top: 1rem;
-      padding: 1rem;
-      border-radius: 12px;
-      background: #1a1212;
-      border: 1px solid #3a1c1c;
-      color: #ffd7d7;
-      display: none;
-    }
-    .alert.show { display: block; }
-    .video-wrap {
-      margin-top: 1rem;
-      border-radius: 12px;
-      overflow: hidden;
-      border: 1px solid #243046;
-      background: #0e121a;
-    }
-    video {
-      width: 100%;
-      max-height: 300px;
-      display: block;
-      background: #000;
-    }
-    .row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; }
-    .hint { color: var(--muted); font-size: 0.85rem; }
-    .grid {
-      display: grid;
-      gap: 0.75rem;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    }
-    .divider {
-      height: 1px;
-      background: #1c2330;
-      margin: 1rem 0;
-    }
-    footer {
-      padding: 0.75rem 1.25rem;
-      border-top: 1px solid #1c2330;
-      font-size: 0.85rem;
-      color: var(--muted);
-    }
-    .role-tag {
-      padding: 0.35rem 0.6rem;
-      border-radius: 8px;
-      background: #162034;
-      border: 1px solid #22314f;
-      color: #cde5ff;
-      font-size: 0.85rem;
-    }
-    .role-police { background: #14202a; border-color: #214056; color: #d1f4ff; }
-    .role-thief  { background: #1f1626; border-color: #3f2852; color: #f1d8ff; }
-    .center {
-      display: grid;
-      place-items: start;
-      min-height: 280px;
-    }
-  </style>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database.js"></script>
 </head>
 <body>
-  <div class="app">
-    <header>
-      <h1>Policía y Ladrón</h1>
-      <div class="status">
-        <span id="connStatus" class="badge">Sincronización: iniciando…</span>
-      </div>
-    </header>
+  <h1>Juego Policía y Ladrón</h1>
+  <button id="btnPolicia">Soy Policía</button>
+  <button id="btnLadron">Soy Ladrón</button>
 
-    <div class="content">
-      <!-- Panel izquierda: selección y vista de Policía -->
-      <section class="panel" id="policePanel">
-        <div class="row">
-          <span class="role-tag role-police">Policía</span>
-          <button class="btn btn-accent" id="choosePolice">Elegir policía</button>
-        </div>
-        <div class="divider"></div>
-        <div class="center">
-          <div id="policeView">
-            <p class="message"><strong>Esperando rol…</strong> Selecciona “Policía” para ver el estado del ladrón.</p>
-          </div>
-          <div id="policeAlert" class="alert">¡El ladrón está escapando!</div>
-        </div>
-      </section>
+  <div id="vista"></div>
+  <video id="camara" autoplay playsinline style="display:none;"></video>
 
-      <!-- Panel derecha: selección y vista de Ladrón -->
-      <section class="panel" id="thiefPanel">
-        <div class="row">
-          <span class="role-tag role-thief">Ladrón</span>
-          <button class="btn btn-danger" id="chooseThief">Elegir ladrón</button>
-        </div>
-        <div class="divider"></div>
-        <div id="thiefView">
-          <p class="message"><strong>Esperando rol…</strong> Selecciona “Ladrón” para poder escapar.</p>
-        </div>
-        <div class="video-wrap" id="thiefCamWrap" style="display:none;">
-          <video id="thiefVideo" playsinline autoplay muted></video>
-        </div>
-      </section>
-    </div>
+<script>
+  // Configura tu proyecto Firebase (pon tus claves aquí)
+  const firebaseConfig = {
+    apiKey: "TU_API_KEY",
+    authDomain: "TU_DOMINIO.firebaseapp.com",
+    databaseURL: "https://TU_DOMINIO.firebaseio.com",
+    projectId: "TU_PROJECT_ID",
+    storageBucket: "TU_BUCKET.appspot.com",
+    messagingSenderId: "TU_SENDER_ID",
+    appId: "TU_APP_ID"
+  };
+  const app = firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-    <footer>
-      Abrir en dos pestañas: una como Policía y otra como Ladrón. Cuando el ladrón haga clic en “Escapar”, se avisará al policía y la cámara del ladrón se activará a los 2 segundos.
-    </footer>
-  </div>
+  const vista = document.getElementById('vista');
+  const camara = document.getElementById('camara');
 
-  <script>
-    // Canal de sincronización entre pestañas
-    const CHANNEL_NAME = 'policia-ladron-sync-v1';
-    let channel;
-    let channelOk = false;
-
-    try {
-      channel = new BroadcastChannel(CHANNEL_NAME);
-      channelOk = true;
-      setConnStatus('Sincronización: BroadcastChannel');
-      channel.onmessage = (ev) => handleMessage(ev.data);
-    } catch (e) {
-      channelOk = false;
-      setConnStatus('Sincronización: localStorage (respaldo)');
-      window.addEventListener('storage', (ev) => {
-        if (ev.key === CHANNEL_NAME && ev.newValue) {
-          try {
-            const data = JSON.parse(ev.newValue);
-            handleMessage(data);
-          } catch {}
-        }
-      });
-    }
-
-    function send(data) {
-      if (channelOk) {
-        channel.postMessage(data);
-      } else {
-        localStorage.setItem(CHANNEL_NAME, JSON.stringify({ ...data, t: Date.now() }));
-        // Limpieza ligera para evitar acumulación
-        setTimeout(() => localStorage.removeItem(CHANNEL_NAME), 250);
+  document.getElementById('btnPolicia').onclick = () => {
+    vista.textContent = "Se activará la alarma cuando el ladrón escape...";
+    db.ref("escape").on("value", snap => {
+      if (snap.val() === true) {
+        vista.textContent = "¡El ladrón está escapando!";
       }
-    }
-
-    function setConnStatus(text) {
-      const el = document.getElementById('connStatus');
-      if (el) el.textContent = text;
-    }
-
-    // Estado de rol
-    let isPolice = false;
-    let isThief = false;
-    let escapeTriggered = false;
-
-    const policeView = document.getElementById('policeView');
-    const policeAlert = document.getElementById('policeAlert');
-    const thiefView = document.getElementById('thiefView');
-    const thiefCamWrap = document.getElementById('thiefCamWrap');
-    const thiefVideo = document.getElementById('thiefVideo');
-
-    document.getElementById('choosePolice').addEventListener('click', () => {
-      isPolice = true; isThief = false;
-      policeView.innerHTML = `
-        <p class="message">
-          <strong>Se activará la alarma</strong> cuando el ladrón escape. Mantente alerta.
-        </p>
-      `;
     });
+  };
 
-    document.getElementById('chooseThief').addEventListener('click', () => {
-      isThief = true; isPolice = false;
-      thiefView.innerHTML = `
-        <div class="grid">
-          <button class="btn btn-danger" id="escapeBtn">Escapar</button>
-          <span class="hint">Cuando escapes, el policía recibirá una alerta.</span>
-        </div>
-      `;
-      const escapeBtn = document.getElementById('escapeBtn');
-      escapeBtn.addEventListener('click', onThiefEscape);
-    });
-
-    function onThiefEscape() {
-      if (escapeTriggered) return;
-      escapeTriggered = true;
-
-      // Enviar evento a otros dispositivos/pestañas
-      send({ type: 'THIEF_ESCAPE' });
-
-      // Feedback local inmediato para el ladrón
-      thiefView.innerHTML = `
-        <p class="message"><strong>¡Escapaste!</strong> Activando cámara en 2 segundos…</p>
-      `;
-
-      setTimeout(() => {
-        startThiefCamera();
+  document.getElementById('btnLadron').onclick = () => {
+    vista.innerHTML = "<button id='escapar'>Escapar</button>";
+    document.getElementById('escapar').onclick = () => {
+      db.ref("escape").set(true);
+      vista.textContent = "¡Escapaste! Activando cámara en 2 segundos...";
+      setTimeout(async () => {
+        camara.style.display = "block";
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({video:true});
+          camara.srcObject = stream;
+        } catch(e) {
+          vista.textContent = "No se pudo activar la cámara.";
+        }
       }, 2000);
-    }
-
-    async function startThiefCamera() {
-      try {
-        thiefCamWrap.style.display = 'block';
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        thiefVideo.srcObject = stream;
-        thiefVideo.play().catch(() => {});
-      } catch (err) {
-        thiefView.innerHTML = `
-          <p class="message"><strong>No se pudo activar la cámara.</strong> Verifica permisos y origen seguro (https).</p>
-        `;
-      }
-    }
-
-    function handleMessage(msg) {
-      if (!msg || !msg.type) return;
-
-      if (msg.type === 'THIEF_ESCAPE') {
-        // Vista del policía: alerta inmediata
-        if (isPolice) {
-          policeAlert.classList.add('show');
-          policeView.innerHTML = `
-            <p class="message"><strong>¡El ladrón está escapando!</strong> Activando alarma…</p>
-          `;
-          // Puedes añadir sonidos/animaciones aquí si lo deseas
-        }
-      }
-    }
-  </script>
+    };
+  };
+</script>
 </body>
 </html>
 
